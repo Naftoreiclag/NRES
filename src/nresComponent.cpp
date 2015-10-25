@@ -3,10 +3,13 @@
  * Distributed under the Apache License Version 2.0 (http://www.apache.org/licenses/)
  * See accompanying file LICENSE
  */
+#include "nresComponent.hpp"
 
-#include "nresComponentData.h"
+namespace nres
+{
 
-namespace nres {
-ComponentData::ComponentData() {}
-ComponentData::~ComponentData() {}
+Component::Component() {}
+Component::~Component() {}
+
 }
+

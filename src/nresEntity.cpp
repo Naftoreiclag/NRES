@@ -3,80 +3,69 @@
  * Distributed under the Apache License Version 2.0 (http://www.apache.org/licenses/)
  * See accompanying file LICENSE
  */
-
-#include "nresEntity.h"
+#include "nresEntity.hpp"
 
 #include <cassert>
-#include <vector>
-#include "nresWorld.h"
 
-namespace nres {
+#include "nresWorld.hpp"
+#include "nresComponent.hpp"
 
-	Entity::Entity(World& world)
-	: world(world),
-	finalized(false) {
-	}
+namespace nres
+{
 
-	Entity::~Entity() {
-		for(std::map<ComponentID, ComponentData*>::iterator it = componentDataMap.begin(); it != componentDataMap.end(); ++ it) {
-			delete it->second;
-		}
-	}
+Entity::Entity(World* world)
+: world(world)
+, isPublished(false) {
+}
 
-	void Entity::addComponent(const ComponentID& compID, ComponentData* data) {
-		assert(!finalized);
-
-		// If this component already exists in entity, then overwrite it
-		std::map<ComponentID, ComponentData*>::iterator overwrite = componentDataMap.find(compID);
-		if(overwrite != componentDataMap.end()) {
-            componentDataMap.erase(overwrite);
-		}
-
-		componentDataMap.insert(std::pair<ComponentID, ComponentData*>(compID, data));
-	}
-
-	void Entity::finalize() {
-		assert(!finalized);
-
-		// Iterate over all pairs
-		for(std::map<ComponentID, ComponentData*>::iterator it = componentDataMap.begin(); it != componentDataMap.end(); ++ it) {
-			// Tell the world that this has certain components
-			ComponentID compID = it->first;
-			world.knownEntitiesByComponents.add(compID, this);
-		}
-
-		finalized = true;
-	}
+Entity::~Entity()
+{
+}
 
 
-	ComponentData* Entity::getComponentData(const ComponentID& compID) {
+void Entity::add(Component* component) {
+    assert(!isPublished);
+    
+    components.push_back(component);
+}
 
-		std::map<ComponentID, ComponentData*>::iterator location = componentDataMap.find(compID);
-
-		if(location == componentDataMap.end()) {
-			return 0;
-		}
-
-		return location->second;
-	}
-
-	void Entity::deleteSelf() {
-		world.deleteEntity(this);
-	}
-
-    Entity& Entity::duplicate() {
-		Entity& clone = world.newEntity();
-
-		for(std::map<ComponentID, ComponentData*>::iterator it = componentDataMap.begin(); it != componentDataMap.end(); ++ it) {
-			clone.addComponent(it->first, it->second->clone());
-		}
-
-		if(finalized) {
-			clone.finalize();
-		}
-
-		return clone;
+void Entity::publish() {
+    assert(!isPublished);
+    isPublished = true;
+    
+    for(std::vector<System*>::iterator sysIter = world->systems.begin(); sysIter != world->systems.end(); ++ sysIter) {
+        System* sys = *sysIter;
+        
+        if(true) {
+            systems.push_back(sys);
+            sys->onEntityExists(this);
+        }
     }
 }
 
+Component* Entity::getComponent(const ComponentID& componentID) {
+    assert(isPublished);
+    
+    for(std::vector<Component*>::iterator compIter = components.begin(); compIter != components.end(); ++ compIter) {
+        Component* comp = *compIter;
+        
+        if(comp->getID() == componentID) {
+            return comp;
+        }
+    }
+    
+    return 0;
+}
+
+void Entity::broadcast(void* data) {
+    assert(isPublished);
+    
+    for(std::vector<System*>::iterator sysIter = systems.begin(); sysIter != systems.end(); ++ sysIter) {
+        System* sys = *sysIter;
+        
+        sys->onEntityBroadcast(this, data);
+    }
+}
+
+}
 

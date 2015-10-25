@@ -3,17 +3,15 @@
  * Distributed under the Apache License Version 2.0 (http://www.apache.org/licenses/)
  * See accompanying file LICENSE
  */
+#ifndef NRES_TYPEDEFS_HPP
+#define NRES_TYPEDEFS_HPP
 
-#ifndef NRESCOMPONENTDATA_H
-#define NRESCOMPONENTDATA_H
+#include <string>
 
 namespace nres {
-class ComponentData {
-public:
-	ComponentData();
-	virtual ComponentData* clone() const = 0;
-	virtual ~ComponentData();
-};
+
+typedef std::string ComponentID;
+
 }
 
-#endif // NRESCOMPONENTDATA_H
+#endif // NRES_TYPEDEFS_HPP
